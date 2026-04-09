@@ -1,4 +1,11 @@
-# sv
+
+# Sportsbook application
+
+- allows you to pick odds for different markets, stake and place bets, view your bets, clear placed bets
+
+ -  [`design`](https://xd.adobe.com/view/7424bc6d-188e-4df5-83cb-a4eb9281540c-2177/) 
+
+## sv
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
