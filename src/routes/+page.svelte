@@ -1,6 +1,13 @@
 <script lang="ts">
   import { browser } from '$app/environment';
-  import { ArrowLeft } from '@lucide/svelte';
+  import {
+    ArrowLeft,
+    Flame,
+    ListChecks,
+    MessageCircle,
+    UserPlus,
+    UserRound,
+  } from '@lucide/svelte';
   import type {
     BetslipItem,
     CompetitionGroup,
@@ -279,7 +286,21 @@
                   : 'border-[#dde2ea] bg-white hover:bg-[#f7f9fc]'
               }`}
             >
-              <div class="mx-auto mb-1 h-6 w-6 rounded-full bg-[#edf1f7]"></div>
+              <div
+                class="mx-auto mb-1 grid h-6 w-6 place-items-center rounded-full bg-[#edf1f7] text-[#445072]"
+              >
+                {#if shortcut.id === 'mybets'}
+                  <ListChecks size={13} />
+                {:else if shortcut.id === 'profile'}
+                  <UserRound size={13} />
+                {:else if shortcut.id === 'chat'}
+                  <MessageCircle size={13} />
+                {:else if shortcut.id === 'affiliate'}
+                  <UserPlus size={13} />
+                {:else if shortcut.id === 'promos'}
+                  <Flame size={13} />
+                {/if}
+              </div>
               {shortcut.label}
             </button>
           {/each}
