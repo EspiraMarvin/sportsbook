@@ -8,6 +8,8 @@
     UserPlus,
     UserRound,
   } from '@lucide/svelte';
+  import OrderedMarkets from '$lib/components/OrderedMarkets.svelte';
+  import PlaceBet from '$lib/components/PlaceBet.svelte';
   import type {
     BetslipItem,
     CompetitionGroup,
@@ -279,7 +281,8 @@
         <div class="mb-4 grid grid-cols-5 gap-2">
           {#each sidebarShortcuts as shortcut}
             <button
-              onclick={() => (shortcut.id === 'mybets' ? openMyBets() : undefined)}
+              onclick={() =>
+                shortcut.id === 'mybets' ? openMyBets() : undefined}
               class={`rounded border p-1 text-center text-[7px] transition ${
                 shortcut.id === 'mybets' && rightPanelView === 'mybets'
                   ? 'border-[#5cbf59] bg-[#eaf7ea]'
@@ -311,7 +314,9 @@
             {#if selectedPlacedBet()}
               {@const activeBet = selectedPlacedBet()}
               {#if activeBet}
-                <div class="flex items-center justify-between border-b border-[#eef1f5] px-3 py-2">
+                <div
+                  class="flex items-center justify-between border-b border-[#eef1f5] px-3 py-2"
+                >
                   <h3 class="text-sm font-semibold text-[#384057]">My Bets</h3>
                   <button
                     onclick={backToMyBetsList}
@@ -335,19 +340,29 @@
                     <div class="mt-2 space-y-1 text-[10px] text-[#4f5971]">
                       {#each activeBet.items as item}
                         <div class="flex items-start justify-between gap-2">
-                          <span class="truncate">{item.matchTitle} - {item.selectionLabel}</span>
-                          <span class="font-semibold">{item.oddValue.toFixed(2)}</span>
+                          <span class="truncate"
+                            >{item.matchTitle} - {item.selectionLabel}</span
+                          >
+                          <span class="font-semibold"
+                            >{item.oddValue.toFixed(2)}</span
+                          >
                         </div>
                       {/each}
                     </div>
-                    <div class="mt-2 border-t border-[#e6eaf0] pt-2 text-[10px]">
+                    <div
+                      class="mt-2 border-t border-[#e6eaf0] pt-2 text-[10px]"
+                    >
                       <div class="flex justify-between">
                         <span class="text-[#8a92a2]">Stake</span>
-                        <span class="font-semibold">Ksh. {activeBet.stake.toLocaleString()}</span>
+                        <span class="font-semibold"
+                          >Ksh. {activeBet.stake.toLocaleString()}</span
+                        >
                       </div>
                       <div class="mt-1 flex justify-between">
                         <span class="text-[#8a92a2]">Possible winnings</span>
-                        <span class="font-semibold">Ksh. {activeBet.possibleWinnings.toLocaleString()}</span>
+                        <span class="font-semibold"
+                          >Ksh. {activeBet.possibleWinnings.toLocaleString()}</span
+                        >
                       </div>
                     </div>
                   </div>
@@ -360,7 +375,9 @@
 
               <div class="max-h-56 space-y-2 overflow-y-auto p-2">
                 {#if placedBets.length === 0}
-                  <div class="rounded bg-[#f7f9fc] p-3 text-center text-xs text-[#6b7386]">
+                  <div
+                    class="rounded bg-[#f7f9fc] p-3 text-center text-xs text-[#6b7386]"
+                  >
                     No placed bets yet.
                   </div>
                 {:else}
@@ -378,8 +395,9 @@
                         </div>
                       </div>
                       <div class="mt-1 text-[10px] text-[#4f5971]">
-                        {bet.items.length} selection{bet.items.length > 1 ? 's' : ''} •
-                        Ksh. {bet.stake.toLocaleString()}
+                        {bet.items.length} selection{bet.items.length > 1
+                          ? 's'
+                          : ''} • Ksh. {bet.stake.toLocaleString()}
                       </div>
                     </button>
                   {/each}
@@ -429,7 +447,7 @@
         </div>
 
         <div class="mb-2 flex items-center gap-1 text-xs font-semibold">
-          {#each (['Highlights', 'Live', 'Upcoming'] as MiddleTab[]) as tab}
+          {#each ['Highlights', 'Live', 'Upcoming'] as MiddleTab[] as tab}
             <button
               class={`rounded px-3 py-1 ${
                 activeMiddleTab === tab
@@ -462,7 +480,9 @@
                     : ''}
                   {group.competitionName}
                 </div>
-                <div class="ml-3 shrink-0 font-semibold text-[#7c8597]">&gt;</div>
+                <div class="ml-3 shrink-0 font-semibold text-[#7c8597]">
+                  &gt;
+                </div>
               </div>
 
               {#each group.games as game (game.parent_match_id)}
@@ -488,47 +508,11 @@
                         {formatKickoff(game.start_time)}
                       </div>
                     </div>
-                    <div class="flex-1 overflow-x-auto">
-                      <div class="flex min-w-full items-center gap-7 pr-1">
-                        {#each orderedMarkets as market (market.sub_type_id)}
-                          <div
-                            class="flex items-center gap-1.5"
-                            style={`flex: ${market.odds.length} 1 0%; min-width: calc(${market.odds.length} * 4rem + ${market.odds.length - 1} * 0.375rem);`}
-                          >
-                            {#each market.odds as odd (odd.event_odd_id)}
-                              <button
-                                class={`relative h-12 w-16 rounded-md border border-[#e4e8ee] bg-white px-1.5 text-center shadow-[0_1px_2px_rgba(16,24,40,0.08)] transition ${
-                                  selected === odd.event_odd_id
-                                    ? 'border-[#f7c04a] bg-[#eaf7ea] ring-1 ring-[#f7c04a]'
-                                    : 'hover:bg-[#f7f9fc]'
-                                }`}
-                                onclick={() =>
-                                  toggleSelection(
-                                    game.parent_match_id,
-                                    odd.event_odd_id,
-                                  )}
-                              >
-                                <div
-                                  class="text-[9px] font-semibold leading-none text-[#4f5971]"
-                                >
-                                  {odd.outcome_name}
-                                </div>
-                                <div
-                                  class="mt-1 text-[8px] leading-none text-[#a1a8b5]"
-                                >
-                                  {odd.odd_value.toFixed(2)}
-                                </div>
-                                {#if selected === odd.event_odd_id}
-                                  <span
-                                    class="hidden lg:block absolute right-0.5 top-1 h-1.5 w-1.5 rounded-full bg-[#f7c04a]"
-                                  ></span>
-                                {/if}
-                              </button>
-                            {/each}
-                          </div>
-                        {/each}
-                      </div>
-                    </div>
+                    <OrderedMarkets
+                      orderedMarkets={orderedMarkets}
+                      selectedOddId={selected}
+                      onSelectOdd={(oddId) => toggleSelection(game.parent_match_id, oddId)}
+                    />
                     <div
                       class="mr-2 text-[8px] font-semibold leading-tight text-[#4f5971]"
                     >
@@ -621,90 +605,25 @@
           {/if}
         </div>
 
-        <!-- place bet section (always visible) -->
-        <div
-          class="sticky bottom-0 z-10 border-t border-[#dce1e8] bg-[#f7f8fb] p-3"
-        >
-          <div
-            class="rounded-lg border border-[#eef0f4] bg-white p-3 text-[#1b2034] shadow-sm"
-          >
-            <div class="flex items-start justify-between gap-3">
-              <div class="text-sm">
-                <div class="text-[#1b2034]/90">Total odds</div>
-                <div class="mt-1 text-[#1b2034]/90">Possible winnings</div>
-              </div>
-              <div class="text-right text-sm font-semibold">
-                <div>
-                  {totalOddsValue ? totalOddsValue.toFixed(2) : '0.00'}
-                </div>
-                <div class="mt-1 text-lg font-bold">
-                  {possibleWinningsValue
-                    ? `Ksh. ${possibleWinningsValue.toLocaleString()}`
-                    : 'Ksh. 0'}
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="mt-3 grid grid-cols-5 overflow-hidden rounded border border-white/80"
-            >
-              {#each stakePresets as preset}
-                <button
-                  class={`px-1 py-3 text-center text-xs ${
-                    stake === preset
-                      ? 'bg-[#1b2a3f] text-[#f7c04a] ring-2 ring-inset ring-[#2f9bff]'
-                      : 'bg-[#1b2a3f] text-white hover:bg-[#23344d]'
-                  } border-r border-white/80 last:border-r-0`}
-                  onclick={() => (stake = preset)}
-                >
-                  Kes {preset}
-                </button>
-              {/each}
-            </div>
-
-            <div
-              class="mt-3 rounded-lg border border-[#f3c15a] bg-[#1b2a3f]/80 px-4 py-4"
-            >
-              <div class="flex items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                  <div class="text-md font-normal text-white">Stake</div>
-                </div>
-                <input
-                  class="w-28 bg-transparent text-right text-lg text-white outline-none placeholder:text-white"
-                  type="number"
-                  min="0"
-                  step="1"
-                  inputmode="numeric"
-                  bind:value={stake}
-                />
-              </div>
-            </div>
-
-            <div class="mt-3 grid w-full grid-cols-2 gap-2">
-              <button
-                class="rounded-lg border border-[#d9dde5] bg-[#f2f4f8] px-4 py-3 text-md text-[#2b3348]"
-                onclick={clearSlip}
-              >
-                Clear Slip
-              </button>
-              <button
-                disabled={betslipItems().length === 0 || stake <= 0}
-                onclick={placeBet}
-                class="w-full rounded-lg bg-[#f3c15a] px-4 py-3 text-md text-[#11162a]
-				disabled:cursor-not-allowed disabled:bg-[#e8d7a8]"
-              >
-                Place Bet
-              </button>
-            </div>
-          </div>
-        </div>
+        <PlaceBet
+          totalOddsValue={totalOddsValue}
+          possibleWinningsValue={possibleWinningsValue}
+          stake={stake}
+          stakePresets={stakePresets}
+          isPlaceBetDisabled={betslipItems().length === 0 || stake <= 0}
+          onSetStake={(value) => (stake = Number.isNaN(value) ? 0 : Math.max(0, value))}
+          onClearSlip={clearSlip}
+          onPlaceBet={placeBet}
+        />
       </aside>
     </div>
   </div>
 </main>
 
 {#if toastMessage}
-  <div class="fixed right-4 top-4 z-50 rounded bg-[#1e9f4f] px-4 py-2 text-sm font-semibold text-white shadow-lg">
+  <div
+    class="fixed right-4 top-4 z-50 rounded bg-[#1e9f4f] px-4 py-2 text-sm font-semibold text-white shadow-lg"
+  >
     {toastMessage}
   </div>
 {/if}
