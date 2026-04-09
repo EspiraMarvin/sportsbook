@@ -1,60 +1,19 @@
 <script lang="ts">
   import { browser } from '$app/environment';
   import { ArrowLeft } from '@lucide/svelte';
+  import type {
+    BetslipItem,
+    CompetitionGroup,
+    Game,
+    GameMarket,
+    GameOdd,
+    MiddleTab,
+    NavItem,
+    PlacedBet,
+    RightPanelView,
+  } from '$lib/types';
   import { onMount } from 'svelte';
   import rawGames from '../data/games.json';
-
-  type NavItem = { label: string; active?: boolean };
-  type MiddleTab = 'Highlights' | 'Live' | 'Upcoming';
-  type RightPanelView = 'betslip' | 'mybets';
-
-  type GameOdd = {
-    event_odd_id: number;
-    parent_match_id: number;
-    sub_type_id: number;
-    outcome_id: string;
-    outcome_name: string;
-    outcome_alias: string;
-    market_name: string;
-    odd_value: number;
-  };
-
-  type GameMarket = {
-    sub_type_id: number;
-    name: string;
-    market_priority?: number;
-    odds: GameOdd[];
-  };
-
-  type Game = {
-    parent_match_id: number;
-    home_team: string;
-    away_team: string;
-    start_time: string;
-    sport_name: string;
-    competition_name: string;
-    country_name: string;
-    total_markets: number;
-    markets: GameMarket[];
-  };
-
-  type BetslipItem = {
-    matchId: number;
-    matchTitle: string;
-    leagueTitle: string;
-    marketTitle: string;
-    selectionLabel: string;
-    oddValue: number;
-  };
-
-  type PlacedBet = {
-    id: string;
-    placedAt: string;
-    stake: number;
-    totalOdds: number;
-    possibleWinnings: number;
-    items: BetslipItem[];
-  };
 
   const games = rawGames as Game[];
   const PLACED_BETS_KEY = 'sportsbook_placed_bets_v1';
@@ -223,8 +182,6 @@
   }
 
   const stakePresets = [100, 200, 500, 1000, 5000] as const;
-
-  type CompetitionGroup = { competitionName: string; games: Game[] };
 
   function groupedByCompetition(): CompetitionGroup[] {
     const byComp = new Map<string, Game[]>();
