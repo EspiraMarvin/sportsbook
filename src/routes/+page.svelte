@@ -229,6 +229,7 @@
 </script>
 
 <main class="min-h-dvh bg-[#eef0f4] text-[#1b2034]">
+  <h1 class="sr-only">Sportsbook — soccer odds, highlights, and bet slip</h1>
   <div class="min-h-dvh w-full bg-white shadow-sm">
     <header class="border-b border-[#d8dde5] px-4 py-3">
       <div class="flex flex-wrap items-center gap-2 lg:ml-60">
@@ -397,9 +398,10 @@
                       </div>
                     </div>
                     <OrderedMarkets
-                      orderedMarkets={orderedMarkets}
+                      {orderedMarkets}
                       selectedOddId={selected}
-                      onSelectOdd={(oddId) => toggleSelection(game.parent_match_id, oddId)}
+                      onSelectOdd={(oddId) =>
+                        toggleSelection(game.parent_match_id, oddId)}
                     />
                     <div
                       class="mr-2 text-[8px] font-semibold leading-tight text-[#4f5971]"
@@ -494,12 +496,13 @@
         </div>
 
         <PlaceBet
-          totalOddsValue={totalOddsValue}
-          possibleWinningsValue={possibleWinningsValue}
-          stake={stake}
-          stakePresets={stakePresets}
+          {totalOddsValue}
+          {possibleWinningsValue}
+          {stake}
+          {stakePresets}
           isPlaceBetDisabled={betslipItems().length === 0 || stake <= 0}
-          onSetStake={(value) => (stake = Number.isNaN(value) ? 0 : Math.max(0, value))}
+          onSetStake={(value) =>
+            (stake = Number.isNaN(value) ? 0 : Math.max(0, value))}
           onClearSlip={clearSlip}
           onPlaceBet={placeBet}
         />
