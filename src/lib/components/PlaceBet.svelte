@@ -6,6 +6,7 @@
     stakePresets: readonly number[];
     isPlaceBetDisabled: boolean;
     onSetStake: (value: number) => void;
+    onAddStakePreset: (value: number) => void;
     onClearSlip: () => void;
     onPlaceBet: () => void;
   };
@@ -17,6 +18,7 @@
     stakePresets,
     isPlaceBetDisabled,
     onSetStake,
+    onAddStakePreset,
     onClearSlip,
     onPlaceBet,
   }: Props = $props();
@@ -51,7 +53,7 @@
               ? 'bg-[#1b2a3f] text-[#f7c04a] ring-2 ring-inset ring-[#2f9bff]'
               : 'bg-[#1b2a3f] text-white hover:bg-[#23344d]'
           } border-r border-white/80 last:border-r-0`}
-          onclick={() => onSetStake(preset)}
+          onclick={() => onAddStakePreset(preset)}
         >
           Kes {preset}
         </button>

@@ -64,6 +64,7 @@
 
   let selections = $state<Record<number, number | undefined>>({});
   let stake = $state<number>(0);
+  let searchQuery = $state<string>('');
   let totalOddsValue = $state<number>(0);
   let possibleWinningsValue = $state<number>(0);
   let activeMiddleTab = $state<MiddleTab>('Highlights');
@@ -112,6 +113,10 @@
   function clearSlip() {
     selections = {};
     stake = 0;
+  }
+
+  function addStakePreset(amount: number) {
+    stake = Math.max(0, stake + amount);
   }
 
   function betslipItems(): BetslipItem[] {
@@ -174,6 +179,32 @@
       toastMessage = null;
       toastTimer = null;
     }, 2500);
+  }
+
+  function searchMatches(query: string) {
+    searchQuery = query;
+    const normalizedQuery = query.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      console.log('Search results:', []);
+      return;
+    }
+
+    const results = games.filter((game) => {
+      const home = game.home_team.toLowerCase();
+      const away = game.away_team.toLowerCase();
+      return home.includes(normalizedQuery) || away.includes(normalizedQuery);
+    });
+
+    console.log(
+      'Search results:',
+      results.map((game) => ({
+        matchId: game.parent_match_id,
+        homeTeam: game.home_team,
+        awayTeam: game.away_team,
+        competition: game.competition_name,
+      })),
+    );
   }
 
   function placeBet() {
@@ -297,6 +328,9 @@
             id="games-search"
             type="search"
             placeholder="Search"
+            value={searchQuery}
+            oninput={(event) =>
+              searchMatches((event.currentTarget as HTMLInputElement).value)}
             class="w-full rounded border border-[#dce2ea] bg-[#f8f9fb] px-3 py-2 text-xs text-[#4f5971] placeholder:text-[#7a8294] outline-none transition focus:border-[#c2c9d5] focus:bg-white"
           />
         </div>
@@ -545,6 +579,7 @@
           isPlaceBetDisabled={betslipItems().length === 0 || stake <= 0}
           onSetStake={(value) =>
             (stake = Number.isNaN(value) ? 0 : Math.max(0, value))}
+          onAddStakePreset={addStakePreset}
           onClearSlip={clearSlip}
           onPlaceBet={placeBet}
         />
