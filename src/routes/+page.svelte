@@ -23,6 +23,7 @@
   } from '$lib/types';
   import { onMount } from 'svelte';
   import rawGames from '../data/games.json';
+  // import { goto } from '$app/navigation';
 
   const games = rawGames as Game[];
   const PLACED_BETS_KEY = 'sportsbook_placed_bets_v1';
@@ -43,11 +44,31 @@
     { id: 'promos', label: 'Promos' },
   ] as const;
 
+  const leftPanelIframes = [
+    {
+      name: 'Aviator',
+      class: 'border-[#2f3341] bg-[#101721] text-red-500',
+    },
+    {
+      name: 'JetX',
+      class: 'border-[#2d3949] bg-[#141f2c] text-blue-300',
+    },
+    {
+      name: 'Navigator',
+      class: 'border-[#2d3949] bg-[#1d2430] text-white',
+    },
+  ];
+
+  let aviatorIframeUrl =
+    'https://stage.100hp.app/airjet_grm/test/?b=5f132e40ee5c0215e2b1ef1e66d088a4917cbe9f6fe576a912f65a38901e16fc1fc6125be1450e859fe3d50d2e44ee20950978129070174c32d0f25c43d45f7b952aee34c76d2347f16fbb42aa020981939e19da52f106091356a2f21064f40f2aff94c8f370c43d8dda1f926eb34fec1a0bd4e0effa440ddee8833a67416d73e1d8296d49e754106e66ccc3844b0297a8e5b61233fa5ee075896f4fafb40c9ff4151dfcdbd9e624e61e8f3e12.d56b150a69f4eff6ab7d7a4c374bd7ff.4096f4ba-22e6-486d-b5e9-80639fec596f&language=en&pik=019aea9c-ab29-7a4b-aa48-844140f9db9d';
+
   let selections = $state<Record<number, number | undefined>>({});
   let stake = $state<number>(0);
+  let searchQuery = $state<string>('');
   let totalOddsValue = $state<number>(0);
   let possibleWinningsValue = $state<number>(0);
   let activeMiddleTab = $state<MiddleTab>('Highlights');
+  let activeIframeTab = $state<'' | 'Aviator' | 'JetX' | 'Navigator'>('');
   let rightPanelView = $state<RightPanelView>('betslip');
   let placedBets = $state<PlacedBet[]>([]);
   let toastMessage = $state<string | null>(null);
@@ -94,6 +115,10 @@
     stake = 0;
   }
 
+  function addStakePreset(amount: number) {
+    stake = Math.max(0, stake + amount);
+  }
+
   function betslipItems(): BetslipItem[] {
     return Object.entries(selections)
       .map(([matchIdStr, selectedOddId]) => {
@@ -131,6 +156,10 @@
     activeMiddleTab = tab;
   }
 
+  function setIframeTab(tab: any) {
+    activeIframeTab = tab;
+  }
+
   function openMyBets() {
     if (rightPanelView === 'mybets') {
       rightPanelView = 'betslip';
@@ -150,6 +179,32 @@
       toastMessage = null;
       toastTimer = null;
     }, 2500);
+  }
+
+  function searchMatches(query: string) {
+    searchQuery = query;
+    const normalizedQuery = query.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      console.log('Search results:', []);
+      return;
+    }
+
+    const results = games.filter((game) => {
+      const home = game.home_team.toLowerCase();
+      const away = game.away_team.toLowerCase();
+      return home.includes(normalizedQuery) || away.includes(normalizedQuery);
+    });
+
+    console.log(
+      'Search results:',
+      results.map((game) => ({
+        matchId: game.parent_match_id,
+        homeTeam: game.home_team,
+        awayTeam: game.away_team,
+        competition: game.competition_name,
+      })),
+    );
   }
 
   function placeBet() {
@@ -226,19 +281,36 @@
     if (!browser) return;
     localStorage.setItem(PLACED_BETS_KEY, JSON.stringify(placedBets));
   });
+
+  /*function navigateToAviator() {
+    goto('/aviator', {
+      replaceState: true,
+      noScroll: true,
+      keepFocus: true,
+    });
+  }*/
 </script>
 
 <main class="min-h-dvh bg-[#eef0f4] text-[#1b2034]">
+  <h1 class="sr-only">Sportsbook — soccer odds, highlights, and bet slip</h1>
   <div class="min-h-dvh w-full bg-white shadow-sm">
     <header class="border-b border-[#d8dde5] px-4 py-3">
       <div class="flex flex-wrap items-center gap-2 lg:ml-60">
         {#each topNav as item}
           <button
             class={`rounded px-3 py-1.5 text-xs font-semibold transition ${
-              item.active
+              (item.active && activeIframeTab === '') ||
+              (item.label === 'Aviator' && activeIframeTab === 'Aviator')
                 ? 'bg-[#3cb64a] text-white'
                 : 'border border-[#d7dbe3] bg-[#f7f8fa] text-[#4d5468] hover:bg-[#eceff3]'
             }`}
+            onclick={() => {
+              if (item.label === 'Aviator') {
+                setIframeTab('Aviator');
+              } else {
+                setIframeTab('');
+              }
+            }}
           >
             {item.label}
           </button>
@@ -256,6 +328,9 @@
             id="games-search"
             type="search"
             placeholder="Search"
+            value={searchQuery}
+            oninput={(event) =>
+              searchMatches((event.currentTarget as HTMLInputElement).value)}
             class="w-full rounded border border-[#dce2ea] bg-[#f8f9fb] px-3 py-2 text-xs text-[#4f5971] placeholder:text-[#7a8294] outline-none transition focus:border-[#c2c9d5] focus:bg-white"
           />
         </div>
@@ -297,130 +372,133 @@
 
         <h3 class="mb-2 text-sm font-semibold text-[#384057]">Top Games</h3>
         <div class="space-y-2">
-          <div
-            class="rounded border border-[#2f3341] bg-[#101721] px-3 py-2 text-xl font-bold italic text-red-500"
-          >
-            Aviator
-          </div>
-          <div
-            class="rounded border border-[#2d3949] bg-[#141f2c] px-3 py-2 text-xl font-bold italic text-blue-300"
-          >
-            JetX
-          </div>
-          <div
-            class="rounded border border-[#2d3949] bg-[#1d2430] px-3 py-2 text-xl font-bold italic text-white"
-          >
-            Navigator
-          </div>
+          {#each leftPanelIframes as iFrameTab}
+            <button
+              class={`rounded border w-full px-3 py-2 text-xl font-bold italic ${iFrameTab.class}`}
+              onclick={() => setIframeTab(iFrameTab.name)}
+            >
+              {iFrameTab.name}
+            </button>
+          {/each}
         </div>
         <h3 class="mt-4 text-sm font-semibold text-[#384057]">Top Leagues</h3>
       </aside>
 
       <section
-        class="border-b border-[#e4e8ee] p-3 lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r"
+        class={`border-b border-[#e4e8ee] lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r ${activeIframeTab === 'Aviator' ? '' : 'p-3'}`}
       >
-        <div class="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {#each [1, 2, 3] as promo}
-            <div class="rounded border border-[#d8dee6] bg-[#f7f9fb] p-2">
-              <div
-                class="mb-1 text-[11px] font-semibold leading-tight text-[#2d3348]"
-              >
-                Sports welcome bonus.
+        {#if activeIframeTab === 'Aviator'}
+          <iframe
+            title={activeIframeTab}
+            src={aviatorIframeUrl}
+            class="w-full h-full border-0"
+            allowfullscreen
+          ></iframe>
+        {:else}
+          <div class="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {#each [1, 2, 3] as promo}
+              <div class="rounded border border-[#d8dee6] bg-[#f7f9fb] p-2">
+                <div
+                  class="mb-1 text-[11px] font-semibold leading-tight text-[#2d3348]"
+                >
+                  Sports welcome bonus.
+                </div>
+                <div class="text-sm font-bold leading-tight text-[#11162a]">
+                  100% up to £50 on first deposit.
+                </div>
               </div>
-              <div class="text-sm font-bold leading-tight text-[#11162a]">
-                100% up to £50 on first deposit.
-              </div>
-            </div>
-          {/each}
-        </div>
-
-        <div class="mb-2 flex items-center gap-1 text-xs font-semibold">
-          {#each ['Highlights', 'Live', 'Upcoming'] as MiddleTab[] as tab}
-            <button
-              class={`rounded px-3 py-1 ${
-                activeMiddleTab === tab
-                  ? 'bg-[#5cbf59] text-white'
-                  : 'bg-[#f2f4f8] text-[#596175]'
-              }`}
-              onclick={() => setMiddleTab(tab)}
-            >
-              {tab}
-            </button>
-          {/each}
-        </div>
-
-        <div class="rounded border border-[#d8dee6] bg-white">
-          <div
-            class="flex items-center justify-between bg-[#162a61] px-3 py-2 text-sm font-semibold text-white"
-          >
-            <span>Soccer</span>
+            {/each}
           </div>
 
-          {#if activeMiddleTab === 'Highlights'}
-            {#each groupedByCompetition() as group (group.competitionName)}
-              <div
-                class="flex items-center justify-between border-t border-[#edf1f5] px-3 py-2 text-[11px] text-[#8a92a2]"
+          <div class="mb-2 flex items-center gap-1 text-xs font-semibold">
+            {#each ['Highlights', 'Live', 'Upcoming'] as MiddleTab[] as tab}
+              <button
+                class={`rounded px-3 py-1 ${
+                  activeMiddleTab === tab
+                    ? 'bg-[#5cbf59] text-white'
+                    : 'bg-[#f2f4f8] text-[#596175]'
+                }`}
+                onclick={() => setMiddleTab(tab)}
               >
-                <div class="truncate">
-                  {group.games[0]?.country_name ?? ''}{group.games[0]
-                    ?.country_name
-                    ? ' / '
-                    : ''}
-                  {group.competitionName}
-                </div>
-                <div class="ml-3 shrink-0 font-semibold text-[#7c8597]">
-                  &gt;
-                </div>
-              </div>
+                {tab}
+              </button>
+            {/each}
+          </div>
 
-              {#each group.games as game (game.parent_match_id)}
-                {@const orderedMarkets = getOrderedMarkets(game)}
-                {@const selected = selections[game.parent_match_id]}
-                <div class="border-t border-[#edf1f5] px-3 py-3">
-                  <div
-                    class="grid gap-3 md:grid-cols-[minmax(300px,2fr)_minmax(0,6fr)_48px] md:items-center"
-                  >
-                    <div class="min-w-0">
-                      <div class="flex flex-col gap-y-2">
-                        <div class="text-sm font-semibold leading-none">
-                          {game.home_team}
-                        </div>
-                        <div
-                          class="text-sm font-semibold leading-none text-[#3d4560]"
-                        >
-                          {game.away_team}
-                        </div>
-                      </div>
+          <div class="rounded border border-[#d8dee6] bg-white">
+            <div
+              class="flex items-center justify-between bg-[#162a61] px-3 py-2 text-sm font-semibold text-white"
+            >
+              <span>Soccer</span>
+            </div>
 
-                      <div class="mt-1.5 text-[9px] text-[#9097a6]">
-                        {formatKickoff(game.start_time)}
-                      </div>
-                    </div>
-                    <OrderedMarkets
-                      orderedMarkets={orderedMarkets}
-                      selectedOddId={selected}
-                      onSelectOdd={(oddId) => toggleSelection(game.parent_match_id, oddId)}
-                    />
-                    <div
-                      class="mr-2 text-[8px] font-semibold leading-tight text-[#4f5971]"
-                    >
-                      {game.total_markets} <br /> More
-                    </div>
+            {#if activeMiddleTab === 'Highlights'}
+              {#each groupedByCompetition() as group (group.competitionName)}
+                <div
+                  class="flex items-center justify-between border-t border-[#edf1f5] px-3 py-2 text-[11px] text-[#8a92a2]"
+                >
+                  <div class="truncate">
+                    {group.games[0]?.country_name ?? ''}{group.games[0]
+                      ?.country_name
+                      ? ' / '
+                      : ''}
+                    {group.competitionName}
+                  </div>
+                  <div class="ml-3 shrink-0 font-semibold text-[#7c8597]">
+                    &gt;
                   </div>
                 </div>
+
+                {#each group.games as game (game.parent_match_id)}
+                  {@const orderedMarkets = getOrderedMarkets(game)}
+                  {@const selected = selections[game.parent_match_id]}
+                  <div class="border-t border-[#edf1f5] px-3 py-3">
+                    <div
+                      class="grid gap-3 md:grid-cols-[minmax(300px,2fr)_minmax(0,6fr)_48px] md:items-center"
+                    >
+                      <div class="min-w-0">
+                        <div class="flex flex-col gap-y-2">
+                          <div class="text-sm font-semibold leading-none">
+                            {game.home_team}
+                          </div>
+                          <div
+                            class="text-sm font-semibold leading-none text-[#3d4560]"
+                          >
+                            {game.away_team}
+                          </div>
+                        </div>
+
+                        <div class="mt-1.5 text-[9px] text-[#9097a6]">
+                          {formatKickoff(game.start_time)}
+                        </div>
+                      </div>
+                      <OrderedMarkets
+                        {orderedMarkets}
+                        selectedOddId={selected}
+                        onSelectOdd={(oddId) =>
+                          toggleSelection(game.parent_match_id, oddId)}
+                      />
+                      <div
+                        class="mr-2 text-[8px] font-semibold leading-tight text-[#4f5971]"
+                      >
+                        {game.total_markets} <br /> More
+                      </div>
+                    </div>
+                  </div>
+                {/each}
               {/each}
-            {/each}
-          {:else}
-            <div class="border-t border-[#edf1f5] px-3 py-3">
-              <h3 class="text-sm font-semibold text-[#2d3348]">
-                {activeMiddleTab} matches
-              </h3>
-              <p class="mt-2 text-xs text-[#8a92a2]">
-                No matches in {activeMiddleTab.toLowerCase()} right now.
-              </p>
-            </div>
-          {/if}
-        </div>
+            {:else}
+              <div class="border-t border-[#edf1f5] px-3 py-3">
+                <h3 class="text-sm font-semibold text-[#2d3348]">
+                  {activeMiddleTab} matches
+                </h3>
+                <p class="mt-2 text-xs text-[#8a92a2]">
+                  No matches in {activeMiddleTab.toLowerCase()} right now.
+                </p>
+              </div>
+            {/if}
+          </div>
+        {/if}
       </section>
 
       <aside class="flex h-[calc(100dvh-56px)] flex-col bg-[#f7f8fb]">
@@ -494,12 +572,14 @@
         </div>
 
         <PlaceBet
-          totalOddsValue={totalOddsValue}
-          possibleWinningsValue={possibleWinningsValue}
-          stake={stake}
-          stakePresets={stakePresets}
+          {totalOddsValue}
+          {possibleWinningsValue}
+          {stake}
+          {stakePresets}
           isPlaceBetDisabled={betslipItems().length === 0 || stake <= 0}
-          onSetStake={(value) => (stake = Number.isNaN(value) ? 0 : Math.max(0, value))}
+          onSetStake={(value) =>
+            (stake = Number.isNaN(value) ? 0 : Math.max(0, value))}
+          onAddStakePreset={addStakePreset}
           onClearSlip={clearSlip}
           onPlaceBet={placeBet}
         />
