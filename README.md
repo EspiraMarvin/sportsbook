@@ -44,6 +44,16 @@ To create a production version of your app:
 npm run build
 ```
 
+## Testing
+
+```sh
+npm run test
+```
+
+```sh
+npm run test:coverage
+```
+
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
